@@ -1,8 +1,9 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Protocol
+from typing import Any, Protocol, runtime_checkable
 
 
+@runtime_checkable
 class Option[T](Protocol):
     def map[U](self, fn: Callable[[T], U]) -> Option[U]: ...
     def bind[U](self, fn: Callable[[T], Option[U]]) -> Option[U]: ...

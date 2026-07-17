@@ -26,15 +26,18 @@ native generic syntax (`class Foo[T]`, `def bar[T, E = Default]`), structural
   exception-driven control flow with explicit, inspectable failure values.
 - **`State[S, A]`**: a composable wrapper around `S -> (A, S)` functions, for
   threading state through a pipeline without mutation or global variables.
+- **`Collection[T]`**: an iterable-backed container with `map`/`bind`/`reduce`, plus
+  a `sequence` function that turns a `Collection` of `Option`/`Result`/`State`
+  values inside-out into a single `Option`/`Result`/`State` of a `Collection`.
 - **Monad transformers** (`o_bindt`, `r_bindt`): compose `State` with `Option` or
   `Result` directly, so a stateful computation can short-circuit on `Nothing` or
   `Err` without manual unwrapping at every step.
-- **`map` / `bind` / `lift`** across all three types, for a consistent functional
+- **`map` / `bind` / `lift`** across all types, for a consistent functional
   interface regardless of which container you are working with.
 - Fully immutable: every type is a frozen, slotted dataclass. No shared mutable
   state, no reference cycles.
-- Structural typing throughout: `Option`, `Result`, and `State` are `Protocol`s, so
-  you can write your own conforming implementations without subclassing.
+- Structural typing throughout: `Option`, `Result`, and `State` are `@runtime_checkable`
+  `Protocol`s, so you can write your own conforming implementations without subclassing.
 
 ## Requirements
 
@@ -119,6 +122,23 @@ def read_and_validate(state: State[int, Result[int, str]]) -> State[int, Result[
     return r_bindt(state, validate)
 ```
 
+### Collection and sequence
+
+```python
+from fnkit.collection import Collection, sequence
+from fnkit.result import Err, Ok, Result
+
+def parse_positive(raw: int) -> Result[int, str]:
+    return Ok(raw) if raw > 0 else Err(f"{raw} is not positive")
+
+results = Collection(parse_positive(n) for n in (1, 2, 3))
+combined = sequence(results)
+print(combined)  # Ok(Collection([1, 2, 3]))
+
+results_with_failure = Collection(parse_positive(n) for n in (1, -2, 3))
+print(sequence(results_with_failure))  # Err("-2 is not positive")
+```
+
 ## Design notes
 
 - `Nothing`, `Ok`, and `Err` compare and hash by value, not by identity, since all
@@ -129,13 +149,30 @@ def read_and_validate(state: State[int, Result[int, str]]) -> State[int, Result[
 - `lift` for `Option` and `Result` evaluates its first argument before its second,
   so when both sides are `Nothing`/`Err`, the first argument's failure is the one
   that propagates. This matches left-to-right short-circuiting.
-
+- `sequence` on an empty `Collection` cannot detect which monad to wrap the result
+  in, since there is no element to inspect. Rather than introduce an Identity monad
+  solely to make this one case type-correct, `sequence(Collection(()))` returns a
+  bare `Collection` unchanged. This is a known, deliberate limitation: callers
+  sequencing collections that might be empty should check for that case themselves
+  before relying on the wrapped-monad return type.
+- `Collection` is a thin wrapper over any `Iterable[T]`, so it inherits whatever
+  rewindability (or lack of it) the underlying iterable has. Back it with a `list`
+  or `tuple` and you can iterate, `map`, or `bind` over the same `Collection`
+  repeatedly. Back it with a generator or any other one-shot iterator and the
+  first traversal exhausts it, so a second `.map()`, `.bind()`, or `for` loop over
+  the same instance silently yields nothing. `Collection` does not materialize or
+  cache its contents on your behalf.
 
 ## Running tests
 
 ```bash
+uv sync --all-groups
 make verify
 ```
+
+Note that `make verify` runs `ruff check --fix` and `ruff format`, both of which
+rewrite files in place rather than only reporting violations. If you want a
+read-only check instead (what CI runs), use `make verify_ci`.
 
 ## License
 

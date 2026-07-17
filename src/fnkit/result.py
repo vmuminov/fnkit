@@ -1,8 +1,9 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 
+@runtime_checkable
 class Result[T, E](Protocol):
     def map[U](self, fn: Callable[[T], U]) -> Result[U, E]: ...
     def map_err[F](self, fn: Callable[[E], F]) -> Result[T, F]: ...
