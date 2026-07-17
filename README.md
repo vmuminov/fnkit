@@ -43,7 +43,7 @@ Python 3.14 or later.
 ## Installation
 
 ```bash
-pip install fnkit
+uv add fnkit
 ```
 
 ## Quick examples
@@ -129,6 +129,13 @@ def read_and_validate(state: State[int, Result[int, str]]) -> State[int, Result[
 - `lift` for `Option` and `Result` evaluates its first argument before its second,
   so when both sides are `Nothing`/`Err`, the first argument's failure is the one
   that propagates. This matches left-to-right short-circuiting.
+
+
+## Running tests
+
+```bash
+make verify
+```
 
 ## License
 
