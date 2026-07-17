@@ -1,6 +1,6 @@
 [project]
 name = "fnkit"
-version = "0.5.0"
+version = "0.6.0"
 description = "Slightly alternative way to write the code"
 readme = "README.md"
 license = "MIT"

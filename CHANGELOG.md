@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-07-18
+
 ### Added
 
 - `as_result` function wrapper, transforming ordinary functions a -> b into a -> Result b e, where e is Exception
@@ -16,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Result and Option protocols are now `@runtime_checkable`
 
-## [0.5.0] - 2024-07-17
+## [0.5.0] - 2026-07-17
 
 ### Added
 
