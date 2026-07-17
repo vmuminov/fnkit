@@ -1,5 +1,5 @@
-.PHONY: lint check pylance test verify verify_ci
-.SILENT: lint check  pylance test verify verify_ci
+.PHONY: stylecheck_fix stylecheck typecheck test verify verify_ci
+.SILENT: stylecheck_fix stylecheck typecheck test verify verify_ci
 
 .DEFAULT_GOAL := verify
 
@@ -8,19 +8,19 @@ RUFF    := $(PY) ruff
 PYTEST  := $(PY) pytest
 PYRIGHT := $(PY) pyright
 
-lint:
+stylecheck_fix:
 	$(RUFF) check --fix .
 	$(RUFF) format .
 
-check:
+stylecheck:
 	$(RUFF) check .
 	$(RUFF) format --check .
 
-pylance:
+typecheck:
 	$(PYRIGHT)
 
 test:
 	$(PYTEST)
 
-verify: lint pylance test
-verify_ci: check pylance test
+verify: stylecheck_fix typecheck test
+verify_ci: stylecheck typecheck test
