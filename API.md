@@ -228,6 +228,32 @@ The failure variant. A frozen dataclass holding one field, `v` (the failure
 value, of type `E`), plus the `T` type parameter carried purely for typing
 purposes.
 
+### `as_result`
+
+```python
+def as_result[T, **P](f: Callable[P, T]) -> Callable[P, Result[T, Exception]]
+```
+
+Wraps an ordinary, exception-raising function so that it returns a `Result`
+instead. The wrapped function calls `f` with whatever arguments it's given;
+if `f` returns normally, the result comes back as `Ok(value)`, and if `f`
+raises any `Exception`, the exception instance itself is caught and returned
+as `Err(exception)` rather than propagating up the stack. This is the
+adapter you reach for at the boundary between `fnkit`'s explicit,
+railway-oriented error handling and the rest of the Python ecosystem, which
+overwhelmingly signals failure by raising.
+
+```python
+safe_int = as_result(int)
+safe_int("1")    # Ok(1)
+safe_int("a")    # Err(ValueError("invalid literal for int() with base 10: 'a'"))
+```
+
+Note that `as_result` catches `Exception` and its subclasses broadly, it does
+not let you narrow which exception types get converted versus re-raised.
+`BaseException` subclasses that aren't `Exception` (`KeyboardInterrupt`,
+`SystemExit`) are not caught, and continue to propagate normally.
+
 ---
 
 ## fnkit.state

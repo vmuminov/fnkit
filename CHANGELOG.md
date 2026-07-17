@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `as_result` function wrapper, transforming ordinary functions a -> b into a -> Result b e, where e is Exception
 - Collection type as a thin wrapper around python's iterators
 
 ### Changed

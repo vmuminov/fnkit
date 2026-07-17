@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from fnkit.result import Err, Ok, Result, lift, pure
+from fnkit.result import Err, Ok, Result, as_result, lift, pure
 
 
 def test_pure():
@@ -107,3 +107,18 @@ def test_side_effects(fn: Callable):
     mock = Mock()
     fn(mock)
     assert mock.call_count == 0
+
+
+@pytest.mark.parametrize(
+    ("inp", "fn", "exp"),
+    [("a", int, Err(ValueError("invalid literal for int() with base 10: 'a'"))), ("1", int, Ok(1))],
+)
+def test_as_result[T, U](inp: T, fn: Callable[[T], U], exp: U):
+    actual = as_result(fn)(inp)
+    if isinstance(exp, Err) and isinstance(actual, Err):
+        assert type(actual.v) is type(exp.v)
+        assert actual.v.args == exp.v.args
+        with pytest.raises(type(exp.v)):
+            fn(inp)
+    else:
+        assert actual == exp

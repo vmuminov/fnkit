@@ -1,5 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass
+from functools import wraps
 from typing import Protocol, runtime_checkable
 
 
@@ -56,3 +57,14 @@ class Err[T, E](Result[T, E]):
 
     def map_err[F](self, fn: Callable[[E], F]) -> Result[T, F]:
         return Err(fn(self.v))
+
+
+def as_result[T, **P](f: Callable[P, T]) -> Callable[P, Result[T, Exception]]:
+    @wraps(f)
+    def _inner(*args: P.args, **kwargs: P.kwargs) -> Result[T, Exception]:
+        try:
+            return Ok(f(*args, **kwargs))
+        except Exception as e:
+            return Err(e)
+
+    return _inner
